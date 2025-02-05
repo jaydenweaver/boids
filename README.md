@@ -1,4 +1,4 @@
-https://github.com/jaydenweaver/boids/blob/main/boids.gif
+![](https://github.com/jaydenweaver/boids/blob/main/boids.gif)
 
 Boids simulation written in C++ using SDL3.
 
