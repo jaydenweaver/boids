@@ -62,11 +62,11 @@ void reassignBoid(boidmap &map, Boid &boid) {
     map[boid.gx][boid.gy].push_back(&boid);
 }
 
-void updateBoids(boidmap &map, boidarr &arr) {
+void updateBoids(boidmap &map, boidarr &arr, paramList &params) {
     /*  move boids and bounce off edges
         application crashes if boid goes off screen due to reassignBoid call - cell doesnt exist (array index out of bounds)    */
     for(int i = 0; i < BOID_COUNT; i++){
-        applyRules(map, arr[i]);
+        applyRules(map, arr[i], params);
         if(0 >= arr[i].x + arr[i].vx || arr[i].x + arr[i].vx >= SCREEN_WIDTH) arr[i].vx = -arr[i].vx;
         if(0 >= arr[i].y + arr[i].vy || arr[i].y + arr[i].vy >= SCREEN_HEIGHT) arr[i].vy = -arr[i].vy;
         arr[i].x += arr[i].vx;
@@ -92,8 +92,8 @@ void steerTo(Boid &boid, float targetVX, float targetVY) {
     boid.ay = (sin(newAngle) * velocity);
 }
 
-void separation(Boid &boid, std::vector<Boid*> locals) {
-    float strength = AVOID_STRENGTH;
+void separation(Boid &boid, std::vector<Boid*> locals, paramList &params) {
+    float strength = params[AVOID];
     for(int i = 0; i < locals.size(); i++) {
         if (distance(boid, locals.at(i)) < MIN_DISTANCE) {
             boid.ax += ((boid.x - locals.at(i) -> x) * strength);
@@ -102,10 +102,10 @@ void separation(Boid &boid, std::vector<Boid*> locals) {
     }
 }
 
-void alignment(Boid &boid, std::vector<Boid*> locals) {
+void alignment(Boid &boid, std::vector<Boid*> locals, paramList &params) {
     if(locals.empty()) return;
 
-    float strength = ALIGN_STRENGTH;
+    float strength = params[ALIGN];
 
     int16_t avgVX = 0;
     int16_t avgVY = 0;
@@ -123,10 +123,10 @@ void alignment(Boid &boid, std::vector<Boid*> locals) {
 }
 
 // can lower complexity via calculating the centre per cell instead of per boid
-void cohesion(Boid &boid, std::vector<Boid*> locals) {
+void cohesion(Boid &boid, std::vector<Boid*> locals, paramList &params) {
     if(locals.empty()) return;
     
-    float strength = CENTRE_STRENGTH;
+    float strength = params[CENTRE];
 
     uint16_t centreX = 0;
     uint16_t centreY = 0;
@@ -196,14 +196,14 @@ void keepFromEdge(Boid &boid) {
     if (boid.y > SCREEN_HEIGHT - margin) boid.ay -= strength;
 }
 
-void applyRules(boidmap &map, Boid &boid) {
+void applyRules(boidmap &map, Boid &boid, paramList &params) {
     std::vector<Boid*> locals = getLocals(map, boid);
     
     keepFromEdge(boid);
 
-    cohesion(boid, locals);
-    separation(boid, locals);
-    alignment(boid, locals);
+    cohesion(boid, locals, params);
+    separation(boid, locals, params);
+    alignment(boid, locals, params);
 
     steerTo(boid, boid.vx + boid.ax, boid.vy + boid.ay);
 
