@@ -6,10 +6,11 @@
 #include <cmath>
 #include <thread>
 #include <atomic>
+#include <algorithm>
 
 #define TICK_RATE 60
-#define SCREEN_WIDTH 1600
-#define SCREEN_HEIGHT 900
+#define SCREEN_WIDTH 1800
+#define SCREEN_HEIGHT 1000
 #define BOID_COUNT 100
 #define MAX_VELOCITY 5
 #define MIN_VELOCITY 2
@@ -40,6 +41,7 @@
 #define CENTRE 3
 #define EDGE 4
 
+
 constexpr int cellWidth = SCREEN_WIDTH / X_GRID_COUNT;
 constexpr int cellHeight = SCREEN_HEIGHT / Y_GRID_COUNT;
 
@@ -48,6 +50,12 @@ constexpr std::array<float, NUM_PARAMS> defaultParams = {AVOID_STRENGTH,
                                                         ALIGN_STRENGTH,
                                                         CENTRE_STRENGTH,
                                                         0};
+
+constexpr std::array<std::pair<const char*, int>, 5> paramMap = {{{"avoid", AVOID},
+                                                                {"distance", DISTANCE},
+                                                                {"align", ALIGN},
+                                                                {"centre", CENTRE},
+                                                                {"edge", EDGE}}};
 
 class Boid {
     public:
@@ -66,18 +74,21 @@ typedef std::array<Boid, BOID_COUNT> boidarr;
     // MAP -> 2D cell array [x][y] holding vectors of every boid in that cell
 typedef std::array<std::array<std::vector<Boid*>, Y_GRID_COUNT + 1>, X_GRID_COUNT + 1> boidmap;
 
-
 typedef std::array<std::atomic<float>, NUM_PARAMS> paramList;
 
 // game functions
 SDL_Window* initSDL();
-SDL_Renderer* initRenderer(SDL_Window* window);
-void quit(SDL_Window* window, SDL_Renderer* renderer);
-void drawToScreen(SDL_Renderer* renderer, boidarr& boids, SDL_FRect &brush);
+SDL_Renderer* initRenderer(SDL_Window*);
+void quit(SDL_Window*, SDL_Renderer*);
+void drawToScreen(SDL_Renderer*, boidarr&, SDL_FRect&);
 
 // boid functions
 boidarr initBoids();
-void reassignBoid(boidmap &map, Boid &boid);
-void updateBoids(boidmap &map, boidarr &arr, paramList &params);
-void applyRules(boidmap &map, Boid &boid, paramList &params);
-void getEdgeMode(std::string edgeMode);
+void reassignBoid(boidmap&, Boid&);
+void updateBoids(boidmap&, boidarr&, paramList&);
+void applyRules(boidmap&, Boid&, paramList&);
+void getEdgeMode(std::string);
+
+// input functions
+void doInput(paramList&, std::string&);
+void setDefaultParams(paramList&, int);
