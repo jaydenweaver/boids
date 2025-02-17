@@ -55,8 +55,10 @@ void reassignBoid(boidmap &map, Boid &boid) {
     for(int i = 0; i < vec.size(); i++) {
         if(vec.at(i) -> id == boid.id) vec.erase(vec.begin() + i);
     }
+
     boid.gx = boid.x / cellWidth;
     boid.gy = boid.y / cellHeight;
+
     map[boid.gx][boid.gy].push_back(&boid);
 }
 
@@ -74,6 +76,14 @@ void updateBoids(boidmap &map, boidarr &arr, paramList &params) {
 
         arr[i].x += arr[i].vx;
         arr[i].y += arr[i].vy;
+
+        // loop boids to other side of screen if needed
+        if(params[EDGE] != 0) {
+            if(arr[i].x >= SCREEN_WIDTH) arr[i].x = 0 + (arr[i].x - SCREEN_WIDTH);
+            if(arr[i].y >= SCREEN_HEIGHT) arr[i].y = 0 + (arr[i].y - SCREEN_HEIGHT);
+            if(arr[i].x < 0) arr[i].x = SCREEN_WIDTH + arr[i].x;
+            if(arr[i].y < 0) arr[i].y = SCREEN_HEIGHT + arr[i].y;
+        }
 
         // check if boids need to be reassigned to another cell
         if(arr[i].x / cellWidth != arr[i].gx || arr[i].y / cellHeight != arr[i].gy) reassignBoid(map, arr[i]);

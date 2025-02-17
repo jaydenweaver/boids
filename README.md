@@ -21,3 +21,4 @@ centre -> *how much boids will try to move towards the centre of the boids withi
 
 align -> *how much boids will try to match the average direction of the boids within its range*
 
+edge -> 0 for boids to bounce off edges, otherwise loop around the screen
