@@ -2,6 +2,7 @@
 
 ![](https://github.com/jaydenweaver/boids/blob/main/boids.gif)
 
+To run, downloaded latest release and run main.exe.
 
 ## Commands:
 
