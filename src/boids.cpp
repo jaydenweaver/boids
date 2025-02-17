@@ -4,8 +4,6 @@
 
     boid array of size BOID_COUNT
 
-    boid needs 4 total values: x, y, vx, vy
-
     randomise every boids position and velocity
 
     apply boid rules:
@@ -57,8 +55,10 @@ void reassignBoid(boidmap &map, Boid &boid) {
     for(int i = 0; i < vec.size(); i++) {
         if(vec.at(i) -> id == boid.id) vec.erase(vec.begin() + i);
     }
+
     boid.gx = boid.x / cellWidth;
     boid.gy = boid.y / cellHeight;
+
     map[boid.gx][boid.gy].push_back(&boid);
 }
 
@@ -67,10 +67,25 @@ void updateBoids(boidmap &map, boidarr &arr, paramList &params) {
         application crashes if boid goes off screen due to reassignBoid call - cell doesnt exist (array index out of bounds)    */
     for(int i = 0; i < BOID_COUNT; i++){
         applyRules(map, arr[i], params);
-        if(0 >= arr[i].x + arr[i].vx || arr[i].x + arr[i].vx >= SCREEN_WIDTH) arr[i].vx = -arr[i].vx;
-        if(0 >= arr[i].y + arr[i].vy || arr[i].y + arr[i].vy >= SCREEN_HEIGHT) arr[i].vy = -arr[i].vy;
+
+        // bounce boids off screen edge
+        if(params[EDGE] == 0) {
+            if(0 >= arr[i].x + arr[i].vx || arr[i].x + arr[i].vx >= SCREEN_WIDTH) arr[i].vx = -arr[i].vx;
+            if(0 >= arr[i].y + arr[i].vy || arr[i].y + arr[i].vy >= SCREEN_HEIGHT) arr[i].vy = -arr[i].vy;
+        }
+
         arr[i].x += arr[i].vx;
         arr[i].y += arr[i].vy;
+
+        // loop boids to other side of screen if needed
+        if(params[EDGE] != 0) {
+            if(arr[i].x >= SCREEN_WIDTH) arr[i].x = 0 + (arr[i].x - SCREEN_WIDTH);
+            if(arr[i].y >= SCREEN_HEIGHT) arr[i].y = 0 + (arr[i].y - SCREEN_HEIGHT);
+            if(arr[i].x < 0) arr[i].x = SCREEN_WIDTH + arr[i].x;
+            if(arr[i].y < 0) arr[i].y = SCREEN_HEIGHT + arr[i].y;
+        }
+
+        // check if boids need to be reassigned to another cell
         if(arr[i].x / cellWidth != arr[i].gx || arr[i].y / cellHeight != arr[i].gy) reassignBoid(map, arr[i]);
     }
 }
@@ -143,24 +158,31 @@ void cohesion(Boid &boid, std::vector<Boid*> locals, paramList &params) {
     boid.ay += ((centreY / boid.y) * strength);
 }
 
-std::vector<Boid*> getLocals(boidmap &map, Boid &boid) {
+std::vector<Boid*> getLocals(boidmap &map, Boid &boid, paramList& params) {
     std::vector<Boid*> locals;
     int xCursor = -LOCAL_SIZE;
     int yCursor = -LOCAL_SIZE;
     int x, y;
 
     while(xCursor <= LOCAL_SIZE && xCursor + boid.gx <= X_GRID_COUNT) {
-        if(boid.gx + xCursor < 0) {
+        x = boid.gx + xCursor;
+        if(params[EDGE] == 0 && x < 0 || params[EDGE] == 0 && x >= X_GRID_COUNT) {
             xCursor++;
             continue;
         }
         while(yCursor <= LOCAL_SIZE && yCursor + boid.gy <= Y_GRID_COUNT) {
-            if(boid.gy + yCursor < 0) {
+            y = boid.gy + yCursor;
+            if(params[EDGE] == 0 && y < 0 || params[EDGE] == 0 && y >= Y_GRID_COUNT) {
                 yCursor++;
                 continue;
             }
-            x = boid.gx + xCursor;
-            y = boid.gy + yCursor;
+            if(params[EDGE] != 0) {
+                if(x >= X_GRID_COUNT) x -= X_GRID_COUNT;
+                if(y >= Y_GRID_COUNT) y -= Y_GRID_COUNT;
+                if(x < 0) x += X_GRID_COUNT;
+                if(y < 0) y += Y_GRID_COUNT;
+            }
+
             locals.insert(locals.end(), map[x][y].begin(), map[x][y].end());
 
             yCursor++;
@@ -197,9 +219,9 @@ void keepFromEdge(Boid &boid) {
 }
 
 void applyRules(boidmap &map, Boid &boid, paramList &params) {
-    std::vector<Boid*> locals = getLocals(map, boid);
+    std::vector<Boid*> locals = getLocals(map, boid, params);
     
-    keepFromEdge(boid);
+    if(params[EDGE] == 0) keepFromEdge(boid);
 
     cohesion(boid, locals, params);
     separation(boid, locals, params);

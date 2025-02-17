@@ -11,13 +11,13 @@
 #define TICK_RATE 60
 #define SCREEN_WIDTH 1800
 #define SCREEN_HEIGHT 1000
-#define BOID_COUNT 100
+#define BOID_COUNT 300
 #define MAX_VELOCITY 5
 #define MIN_VELOCITY 2
 #define BOID_SIZE 4
 
 // in cells, (n + n + 1)^2 cell grid centered on boids current cell - size of 2 is a 5x5 cell grid
-#define LOCAL_SIZE 3
+#define LOCAL_SIZE 1
 
 // resolution of boid vectors
 #define X_GRID_COUNT 20
@@ -57,22 +57,21 @@ constexpr std::array<std::pair<const char*, int>, 5> paramMap = {{{"avoid", AVOI
                                                                 {"centre", CENTRE},
                                                                 {"edge", EDGE}}};
 
-class Boid {
-    public:
-        // x, y = pos | vx, vy = velocity | ax, ay = acceleration | gx, gy = grid pos
-        float x, y;
-        float vx, vy;
-        float ax, ay;
-        uint8_t gx, gy, id;
+struct Boid {
+    // x, y = pos | vx, vy = velocity | ax, ay = acceleration | gx, gy = grid pos
+    float x, y;
+    float vx, vy;
+    float ax, ay;
+    uint8_t gx, gy, id;
 
-        Boid();
-        Boid(int index);
+    Boid();
+    Boid(int index);
 };
 
 typedef std::array<Boid, BOID_COUNT> boidarr;
     
-    // MAP -> 2D cell array [x][y] holding vectors of every boid in that cell
-typedef std::array<std::array<std::vector<Boid*>, Y_GRID_COUNT + 1>, X_GRID_COUNT + 1> boidmap;
+// MAP -> 2D cell array [x][y] holding vectors of every boid in that cell
+typedef std::array<std::array<std::vector<Boid*>, Y_GRID_COUNT>, X_GRID_COUNT> boidmap;
 
 typedef std::array<std::atomic<float>, NUM_PARAMS> paramList;
 
