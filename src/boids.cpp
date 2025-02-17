@@ -4,8 +4,6 @@
 
     boid array of size BOID_COUNT
 
-    boid needs 4 total values: x, y, vx, vy
-
     randomise every boids position and velocity
 
     apply boid rules:
@@ -67,10 +65,17 @@ void updateBoids(boidmap &map, boidarr &arr, paramList &params) {
         application crashes if boid goes off screen due to reassignBoid call - cell doesnt exist (array index out of bounds)    */
     for(int i = 0; i < BOID_COUNT; i++){
         applyRules(map, arr[i], params);
-        if(0 >= arr[i].x + arr[i].vx || arr[i].x + arr[i].vx >= SCREEN_WIDTH) arr[i].vx = -arr[i].vx;
-        if(0 >= arr[i].y + arr[i].vy || arr[i].y + arr[i].vy >= SCREEN_HEIGHT) arr[i].vy = -arr[i].vy;
+
+        // bounce boids off screen edge
+        if(params[EDGE] == 0) {
+            if(0 >= arr[i].x + arr[i].vx || arr[i].x + arr[i].vx >= SCREEN_WIDTH) arr[i].vx = -arr[i].vx;
+            if(0 >= arr[i].y + arr[i].vy || arr[i].y + arr[i].vy >= SCREEN_HEIGHT) arr[i].vy = -arr[i].vy;
+        }
+
         arr[i].x += arr[i].vx;
         arr[i].y += arr[i].vy;
+
+        // check if boids need to be reassigned to another cell
         if(arr[i].x / cellWidth != arr[i].gx || arr[i].y / cellHeight != arr[i].gy) reassignBoid(map, arr[i]);
     }
 }
@@ -199,7 +204,7 @@ void keepFromEdge(Boid &boid) {
 void applyRules(boidmap &map, Boid &boid, paramList &params) {
     std::vector<Boid*> locals = getLocals(map, boid);
     
-    keepFromEdge(boid);
+    if(params[EDGE] == 0) keepFromEdge(boid);
 
     cohesion(boid, locals, params);
     separation(boid, locals, params);

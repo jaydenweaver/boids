@@ -57,16 +57,15 @@ constexpr std::array<std::pair<const char*, int>, 5> paramMap = {{{"avoid", AVOI
                                                                 {"centre", CENTRE},
                                                                 {"edge", EDGE}}};
 
-class Boid {
-    public:
-        // x, y = pos | vx, vy = velocity | ax, ay = acceleration | gx, gy = grid pos
-        float x, y;
-        float vx, vy;
-        float ax, ay;
-        uint8_t gx, gy, id;
+struct Boid {
+    // x, y = pos | vx, vy = velocity | ax, ay = acceleration | gx, gy = grid pos
+    float x, y;
+    float vx, vy;
+    float ax, ay;
+    uint8_t gx, gy, id;
 
-        Boid();
-        Boid(int index);
+    Boid();
+    Boid(int index);
 };
 
 typedef std::array<Boid, BOID_COUNT> boidarr;
